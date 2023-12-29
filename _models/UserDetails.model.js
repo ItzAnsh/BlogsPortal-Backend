@@ -21,7 +21,10 @@ const UserSchema = new Schema({
         required: true,
         minlength: 6  
     },
-    profilePicture: String,  //URL
+    profilePicture: {
+        type: String,
+        default: 'https://www.rd.com/wp-content/uploads/2023/05/GettyImages-6410-001002.jpg?fit=700%2C458?fit=700,700'
+    },
     bio: String,              
     dateJoined: {
         type: Date,
