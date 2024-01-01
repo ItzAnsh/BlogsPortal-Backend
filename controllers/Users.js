@@ -39,4 +39,54 @@ const RegisterUser = async (req, res) => {
 	});
 };
 
-module.exports = { RegisterUser };
+const LoginUser = async (req, res) => {
+	let { email, password } = req.body;
+	// console.log(email, password);
+
+	if (!email || !password)
+		return res.status(400).send({ msg: "Please enter all fields" });
+
+	const ActualUser = await User.findOne({ email: email });
+	// If user not found send error message
+	if (!ActualUser) return res.status(400).send({ msg: "User does not exist" });
+
+	// Validate password
+	bcrypt.compare(password, ActualUser.password).then((isMatch) => {
+		if (!isMatch) return res.status(400).send({ msg: "Invalid credentials" });
+
+		jwt.sign(
+			{ id: ActualUser.id },
+			process.env.JWT_SECRET,
+			{ expiresIn: 3600 },
+			(err, token) => {
+				if (err) throw err;
+				res.json({
+					token,
+					user: {
+						id: ActualUser.id,
+						username: ActualUser.username,
+						email: ActualUser.email,
+					},
+				});
+			}
+		);
+	});
+};
+
+const UserDetails = async (req, res) => {
+	const data = await User.findById(req.user.id)
+		.select("-password")
+		.then((user) => res.json(user));
+
+	res.json(data);
+};
+
+const findUserDetails = async (req, res) => {
+	const data = await User.findById(req.params.id)
+		.select("-password")
+		.then((user) => res.json(user));
+
+	res.json(data);
+};
+
+module.exports = { RegisterUser, LoginUser, UserDetails, findUserDetails };
